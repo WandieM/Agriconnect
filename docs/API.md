@@ -88,7 +88,7 @@ Opportunity province may also be `National`.
 {
   "id": "6017c81f-...", "title": "Crop Production Internship 2027",
   "type": { "slug": "internship", "name": "Internship" },
-  "organisation": "Mopani Fresh Produce (demo)", "description": "12-month internship ...",
+  "organisation": "Mopani Fresh Produce", "description": "12-month internship ...",
   "field": { "slug": "crop-production", "name": "Crop production" }, "province": "Limpopo",
   "minLevel": { "level": 3, "name": "Diploma (NQF 6)" }, "stipend": "R6 500 per month",
   "closingDate": "2026-11-13", "daysLeft": 2, "isOpen": true, "status": "active",
@@ -195,4 +195,4 @@ opportunities (id, title, type, organisation, description, field, province, min_
 
 ## Security controls
 
-bcrypt hashes; JWT secret from environment; parameterised SQL (tested with an injection string); Zod on every input; server-side role checks; Helmet, CORS, 1 MB body limit, login rate limit; POPIA consent stored, minimal data, account deletion; synthetic data only.
+bcrypt hashes; JWT secret from environment; parameterised SQL (tested with an injection string); Zod on every input; server-side role checks; Helmet, CORS, 1 MB body limit, login rate limit; POPIA consent stored, minimal data, account deletion; no real personal data (people are invented; real opportunity listings link to their official adverts).

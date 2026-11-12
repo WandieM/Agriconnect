@@ -1,8 +1,7 @@
-/** SIGN IN screen. Demo accounts are listed at the bottom. */
+/** SIGN IN screen. Test accounts are in the README. */
 import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { errorMessage } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
 import { colors, font, spacing } from '../../lib/theme';
@@ -36,9 +35,7 @@ export default function LoginScreen() {
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <View style={styles.logo}>
-          <Ionicons name="sparkles" size={40} color={colors.white} />
-        </View>
+        <Image source={require('../../../assets/logo-mark.png')} style={styles.logo} accessibilityLabel="AgriOpportunity logo" />
         <Text style={styles.title}>AgriOpportunity</Text>
         <Text style={styles.subtitle}>Agri bursaries, internships and jobs matched to you.</Text>
 
@@ -48,12 +45,6 @@ export default function LoginScreen() {
         <Button title="Sign in" onPress={submit} loading={loading} testID="login-submit" />
         <Button title="New here? Create an account" variant="ghost" onPress={() => router.replace('/register')} style={{ marginTop: spacing.md }} />
 
-        <View style={styles.demo}>
-          <Text style={styles.demoTitle}>Demo accounts (synthetic)</Text>
-          <Text style={styles.demoText}>Youth: lerato@agriopportunity.test / Youth@1234</Text>
-          <Text style={styles.demoText}>New youth: thabo@agriopportunity.test / Youth@1234</Text>
-          <Text style={styles.demoText}>Admin: admin@agriopportunity.test / Admin@1234</Text>
-        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -61,18 +52,7 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   container: { padding: spacing.xl, paddingTop: spacing.xxl },
-  logo: {
-    width: 72,
-    height: 72,
-    borderRadius: 20,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'center',
-  },
+  logo: { width: 80, height: 80, alignSelf: 'center' },
   title: { fontSize: font.h1, fontWeight: '800', textAlign: 'center', color: colors.text, marginTop: spacing.md },
   subtitle: { fontSize: font.body, color: colors.muted, textAlign: 'center', marginBottom: spacing.xl },
-  demo: { marginTop: spacing.xl, padding: spacing.md, backgroundColor: colors.primarySoft, borderRadius: 12 },
-  demoTitle: { fontWeight: '700', color: colors.primaryDark, marginBottom: 4 },
-  demoText: { fontSize: font.small, color: colors.text },
 });

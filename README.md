@@ -1,3 +1,5 @@
+![AgriOpportunity](docs/brand/logo-horizontal.png)
+
 # AgriOpportunity — AgriConnect 360 · A4
 
 One place for agricultural **bursaries, internships, learnerships, graduate placements, programmes and jobs**, matched to a young person's field, province and qualification, with closing-date reminders.
@@ -6,17 +8,26 @@ One place for agricultural **bursaries, internships, learnerships, graduate plac
 - **Backend:** Node.js + Express + TypeScript + PostgreSQL → `backend/`
 - **Docs:** `docs/` · **Postman:** `postman/`
 
-> All demo data is synthetic. Golden journey: **set profile → see matches → save one → receive a closing-date alert.**
+> Golden journey: **set profile → see matches → save one → receive a closing-date alert.**
 
-## Demo accounts (seeded automatically)
+## Starting data
+
+The server fills the database on start (`SEED_ON_START=true`, see `backend/src/db/seed.ts`):
+
+- **35 sample opportunities** (invented organisations, `example.org` links): every province has at least one learnership and one job or graduate placement, plus bursaries, internships and programmes. Their closing dates are moved forward on every server start, so the demo never goes stale.
+- **7 real opportunities** copied from official pages on 12 Nov 2026 (government internship, two bursaries, four jobs), each with its real closing date and a link to the official advert. They close by themselves after their closing date.
+- New items in `seed.ts` are added on the next deploy without wiping existing users or data.
+- All **people** are invented; never add real personal details.
+
+## Test accounts (seeded automatically, not shown in the app)
 
 | Role | Email | Password | Notes |
 |---|---|---|---|
-| Youth | lerato@agriopportunity.test | Youth@1234 | Profile set (Crop production · Limpopo · Diploma); one saved item with an alert already due |
+| Youth | lerato@agriopportunity.test | Youth@1234 | Profile set (Crop production · Limpopo · Diploma): 4 matches; one saved item with an alert already due |
 | Youth (new) | thabo@agriopportunity.test | Youth@1234 | No profile yet — use to demo the golden journey from the start |
 | Admin | admin@agriopportunity.test | Admin@1234 | Manage tab |
 
-Seed closing dates are relative to the day the database is seeded, so the demo always has open items.
+Demo closing dates move forward on every server start, so the demo always has open items and the 2-day alert.
 
 ## 1. Run the backend locally
 
@@ -31,7 +42,7 @@ npm run dev                 # creates tables, seeds demo data, listens on :4000
 
 Check http://localhost:4000/api/v1/health → `{"status":"ok","database":"up"}`.
 
-Tests: `createdb agriopportunity_test` then `npm test` (40 integration tests).
+Tests: `createdb agriopportunity_test` then `npm test` (42 integration tests).
 
 ## 2. Deploy the backend to Render (free)
 
@@ -103,3 +114,4 @@ npx newman run postman/AgriOpportunity.postman_collection.json --env-var baseUrl
 | Developer API test cases | `docs/API_Test_Cases.pdf`, `postman/` |
 | UI/UX screens for Figma | `docs/ui/` |
 | Video script | `docs/Video_Script.md` |
+| Logo and brand files | `docs/brand/` |

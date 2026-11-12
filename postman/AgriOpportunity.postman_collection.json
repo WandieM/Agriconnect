@@ -1942,7 +1942,7 @@
             "description": "Admin creates\n\nExpected: 201 open",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Seedling Nursery Internship {{runId}}\",\n  \"type\": \"internship\",\n  \"organisation\": \"Test Nursery (demo)\",\n  \"description\": \"Six months in a seedling nursery: sowing, grafting and dispatch.\",\n  \"field\": \"crop-production\",\n  \"province\": \"Limpopo\",\n  \"minLevel\": 2,\n  \"closingDate\": \"{{closeDate}}\",\n  \"applyMethod\": \"form\"\n}",
+              "raw": "{\n  \"title\": \"Seedling Nursery Internship {{runId}}\",\n  \"type\": \"internship\",\n  \"organisation\": \"Test Nursery\",\n  \"description\": \"Six months in a seedling nursery: sowing, grafting and dispatch.\",\n  \"field\": \"crop-production\",\n  \"province\": \"Limpopo\",\n  \"minLevel\": 2,\n  \"closingDate\": \"{{closeDate}}\",\n  \"applyMethod\": \"form\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

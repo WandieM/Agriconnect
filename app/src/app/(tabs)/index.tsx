@@ -5,7 +5,7 @@
  * - Signed in with a profile: due alerts (red), "N opportunities match your profile", ranked list
  */
 import React, { useCallback, useState } from 'react';
-import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Image, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Redirect, router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { api, errorMessage } from '../../lib/api';
@@ -68,9 +68,10 @@ export default function MatchesScreen() {
   if (!user) {
     return (
       <View style={{ flex: 1, padding: spacing.xl, justifyContent: 'center' }}>
-        <View style={styles.logo}>
-          <Ionicons name="sparkles" size={36} color={colors.white} />
-        </View>
+        <Image source={require('../../../assets/logo-mark.png')} style={styles.logo} accessibilityLabel="AgriOpportunity logo" />
+        <Text style={styles.brand}>
+          <Text style={{ color: colors.primary }}>Agri</Text>Opportunity
+        </Text>
         <Text style={styles.hero}>Bursaries, internships and jobs in agriculture, matched to you</Text>
         <Text style={styles.heroSub}>Tell us your field, province and qualification once. We show what you qualify for and remind you before it closes.</Text>
         <Button title="Create a free account" onPress={() => router.push('/register')} style={{ marginTop: spacing.xl }} testID="cta-register" />
@@ -145,7 +146,8 @@ export default function MatchesScreen() {
 }
 
 const styles = StyleSheet.create({
-  logo: { width: 72, height: 72, borderRadius: 20, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', alignSelf: 'center', marginBottom: spacing.lg },
+  logo: { width: 96, height: 96, alignSelf: 'center' },
+  brand: { fontSize: font.h2, fontWeight: '800', color: colors.text, textAlign: 'center', marginTop: spacing.sm, marginBottom: spacing.lg },
   hero: { fontSize: font.h1, fontWeight: '800', color: colors.text, textAlign: 'center' },
   heroSub: { fontSize: font.body, color: colors.muted, textAlign: 'center', marginTop: spacing.md, lineHeight: 21 },
   h1: { fontSize: font.h2, fontWeight: '800', color: colors.text },

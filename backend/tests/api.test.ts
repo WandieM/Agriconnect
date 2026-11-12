@@ -7,7 +7,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../src/app';
 import { pool } from '../src/db/pool';
 import { migrate } from '../src/db/migrate';
-import { DEMO_USERS, seed } from '../src/db/seed';
+import { addMissingOpportunities, DEMO_USERS, refreshDemoDates, seed } from '../src/db/seed';
 import { matchOpportunity } from '../src/matching';
 
 const app = createApp();
@@ -103,8 +103,9 @@ describe('golden journey: set profile -> matches -> save -> closing-date alert',
   it('shows a match count and a ranked, explainable list', async () => {
     const res = await api().get('/api/v1/opportunities/matches').set(auth(newUser));
     expect(res.status).toBe(200);
-    // Crop/Limpopo/Diploma: internship (crop, Limpopo, dip), bursary (any, national, matric), incubator (crop, Limpopo, matric)
-    expect(res.body.matchCount).toBe(3);
+    // Crop/Limpopo/Diploma: internship (crop, Limpopo, dip), bursary (any, national, matric), incubator (crop, Limpopo, matric),
+    // plus the real DLRRD agriculture internship (any field, national, diploma) while it is still open.
+    expect(res.body.matchCount).toBeGreaterThanOrEqual(3);
     const scores = res.body.items.map((o: { match: { score: number } }) => o.match.score);
     expect([...scores].sort((a, b) => b - a)).toEqual(scores);
     const top = res.body.items[0];
@@ -237,7 +238,7 @@ describe('admin', () => {
   });
   it('creates an opportunity that appears in matches', async () => {
     const res = await api().post('/api/v1/admin/opportunities').set(auth(admin)).send({
-      title: 'Seedling Nursery Internship', type: 'internship', organisation: 'Test Nursery (demo)',
+      title: 'Seedling Nursery Internship', type: 'internship', organisation: 'Test Nursery',
       description: 'Six months in a seedling nursery: sowing, grafting and dispatch.', field: 'crop-production',
       province: 'Limpopo', minLevel: 2, closingDate: inDays(10), applyMethod: 'form',
     });
@@ -258,7 +259,7 @@ describe('admin', () => {
   it('expires it and it disappears from search', async () => {
     const res = await api().patch(`/api/v1/admin/opportunities/${created}/expire`).set(auth(admin));
     expect(res.body.opportunity.isOpen).toBe(false);
-    const s = await api().get('/api/v1/opportunities').query({ q: 'Seedling' });
+    const s = await api().get('/api/v1/opportunities').query({ q: 'Seedling Nursery' });
     expect(s.body.items).toHaveLength(0);
     const closed = await api().get('/api/v1/admin/opportunities').query({ status: 'closed' }).set(auth(admin));
     expect(closed.body.items.map((o: { id: string }) => o.id)).toContain(created);
@@ -271,6 +272,25 @@ describe('admin', () => {
     expect(apps.body.items).toHaveLength(1);
     const stats = await api().get('/api/v1/admin/stats').set(auth(admin));
     expect(stats.body.applications).toBe(1);
+  });
+});
+
+describe('starting data', () => {
+  it('has a learnership and a job or graduate placement in every province', async () => {
+    const res = await api().get('/api/v1/opportunities').query({ limit: 100 });
+    const items = res.body.items as { province: string; type: { slug: string } }[];
+    for (const province of ['Eastern Cape', 'Free State', 'Gauteng', 'KwaZulu-Natal', 'Limpopo', 'Mpumalanga', 'North West', 'Northern Cape', 'Western Cape']) {
+      const here = items.filter((o) => o.province === province);
+      expect(here.some((o) => o.type.slug === 'learnership'), `learnership in ${province}`).toBe(true);
+      expect(here.some((o) => ['job', 'graduate_placement'].includes(o.type.slug)), `job in ${province}`).toBe(true);
+    }
+  });
+  it('adding missing opportunities twice creates no duplicates', async () => {
+    const before = await api().get('/api/v1/opportunities').query({ limit: 100 });
+    expect(await addMissingOpportunities()).toBe(0);
+    await refreshDemoDates();
+    const after = await api().get('/api/v1/opportunities').query({ limit: 100 });
+    expect(after.body.total).toBe(before.body.total);
   });
 });
 

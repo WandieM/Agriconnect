@@ -76,7 +76,7 @@ Score = number of checks passed (0–3). **Full match = 3/3** (this is the "N op
 
 ## 6. Rules for every change
 
-1. **Synthetic data only.** Organisations end in "(demo)"; demo emails end in `@agriopportunity.test`; apply links use `example.org`.
+1. **No real personal data.** All people are invented (emails end in `@agriopportunity.test`). Sample opportunities use invented organisation names and `example.org` links. The app UI never labels data as demo or synthetic; test logins live only in the README. Real opportunities are allowed only when copied from the organisation's official page, with the real closing date, a link to the official advert and the check date in the description.
 2. **Parameterised SQL only.** No string-built SQL with user input.
 3. **Validate every body and query** with Zod via `parse()`. Errors use `{ error: { code, message, details } }`.
 4. **Server-side role checks** (`requireAuth`, `requireRole`). The app hiding a tab is not security.

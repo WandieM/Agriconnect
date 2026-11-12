@@ -3,7 +3,7 @@ info:
   title: AgriOpportunity API
   version: 1.0.0
   description: 'AgriConnect 360 · A4 AgriOpportunity: agri bursaries, internships, learnerships and jobs matched to a youth profile, with closing-date
-    alerts. Matching = 3 yes/no checks (field, province, level). Synthetic demo data.'
+    alerts. Matching = 3 yes/no checks (field, province, level).'
 servers:
 - url: https://agriopportunity-api.onrender.com/api/v1
   description: Render (replace with your URL)

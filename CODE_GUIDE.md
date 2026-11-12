@@ -55,7 +55,7 @@ How to run it: see `README.md`. Demo logins are on the sign-in screen.
   1. gets every open opportunity, sorted by closing date;
   2. scores each one;
   3. keeps scores of 3 and 2, highest first;
-  4. counts the 3s, giving "3 opportunities match your profile".
+  4. counts the 3s, giving "4 opportunities match your profile" for the demo profile (Crop production, Limpopo, Diploma).
 - **Open** means status is active and the closing date is today or later. Expired ones never show.
 - `GET /opportunities` (Browse) adds a filter to the SQL for each choice: words, type, province, field, closing in 7 days.
 
@@ -115,8 +115,17 @@ How to run it: see `README.md`. Demo logins are on the sign-in screen.
 
 ---
 
+## Where the opportunities come from
+
+`backend/src/db/seed.ts` holds the starting data: 35 invented demo opportunities (every province has a learnership and a job or graduate placement) and 7 real ones copied from official pages on 12 Nov 2026. Every time the server starts (`index.ts`), it adds any that are missing and moves the demo closing dates forward, so the demo never goes stale. Real ones keep their real dates and close by themselves.
+
+| Question | Answer |
+|---|---|
+| Is the data real? | Both. Invented demo listings let us test every province; 7 real listings link to the official adverts. All people are invented. |
+| What happens when a real one closes? | The open rule hides it after its closing date, like any other opportunity. |
+
 ## How we know it works
 
-- `cd backend && npm test` runs **40 automated tests** against a real database, including the whole golden journey.
+- `cd backend && npm test` runs **42 automated tests** against a real database, including the whole golden journey.
 - **Postman:** 51 API test cases (`postman/`), all passing; the report is `docs/API_Test_Cases.pdf`.
 - `npx tsc --noEmit` in both folders: no type errors.

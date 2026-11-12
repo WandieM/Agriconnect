@@ -66,8 +66,8 @@ export default function ProfileScreen() {
       <Card>
         <Text style={styles.h}>Privacy (POPIA)</Text>
         <Text style={styles.meta}>
-          We store your name, email, field, province, qualification level and optional phone to match you to opportunities. We never sell your data. Demo data in this app is
-          synthetic.
+          We store your name, email, field, province, qualification level and optional phone to match you to opportunities. We never sell your data, and you can delete
+          your account at any time.
         </Text>
       </Card>
 

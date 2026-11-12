@@ -1,14 +1,22 @@
-/** START HERE: creates the database tables, adds demo data (if empty), then starts the web server. */
+/**
+ * START HERE: creates the database tables, makes sure the starting data is there, then starts the web server.
+ * With SEED_ON_START=true:
+ *   1. empty database -> create the demo users and opportunities
+ *   2. add any opportunity from seed.ts that is missing (new demo or real listings)
+ *   3. move demo closing dates forward so the demo never goes stale
+ */
 import { createApp } from './app';
 import { config } from './config';
 import { migrate } from './db/migrate';
-import { seedIfEmpty } from './db/seed';
+import { addMissingOpportunities, refreshDemoDates, seedIfEmpty } from './db/seed';
 
 async function main() {
   await migrate();
   if (config.seedOnStart) {
-    const seeded = await seedIfEmpty();
-    if (seeded) console.log('Seeded synthetic demo data');
+    if (await seedIfEmpty()) console.log('Created demo users and opportunities');
+    const added = await addMissingOpportunities();
+    if (added) console.log(`Added ${added} new opportunities`);
+    await refreshDemoDates();
   }
   const app = createApp();
   app.listen(config.port, '0.0.0.0', () => {
