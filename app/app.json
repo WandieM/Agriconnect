@@ -36,7 +36,15 @@
       "expo-secure-store"
     ],
     "extra": {
-      "apiUrl": "https://agriopportunity-api.onrender.com"
+      "apiUrl": "https://agriopportunity-api.onrender.com",
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "9e7faa56-62c1-48c9-b9ab-648c8111a1ea"
+      }
     }
   }
 }
