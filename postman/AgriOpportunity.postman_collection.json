@@ -1,0 +1,2454 @@
+{
+  "info": {
+    "_postman_id": "10a31258-6880-5587-ab49-2a8c2343dd7e",
+    "name": "AgriOpportunity API (AgriConnect 360 \u00b7 A4)",
+    "description": "Developer API test cases for AgriOpportunity v1. Run the whole collection in order (Runner or Newman). Requests share tokens and ids through collection variables. Requires the seeded demo data.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01 Meta",
+      "item": [
+        {
+          "name": "TC-01 Health check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-01 status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-01 200, status ok, database up', () => {",
+                  "  pm.expect(json.status).to.eql('ok');",
+                  "  pm.expect(json.database).to.eql('up');",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "health"
+              ]
+            },
+            "description": "API and database reachable\n\nExpected: 200, status ok, database up"
+          }
+        },
+        {
+          "name": "TC-02 Reference lists",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-02 status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-02 200, 9 provinces, 7 fields, 6 levels, types', () => {",
+                  "  pm.expect(json.provinces).to.have.lengthOf(9);",
+                  "  pm.expect(json.fields).to.have.lengthOf(7);",
+                  "  pm.expect(json.levels).to.have.lengthOf(6);",
+                  "  pm.expect(json.types.map(t => t.slug)).to.include('bursary');",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/meta",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "meta"
+              ]
+            },
+            "description": "Provinces, fields, levels and types in one call\n\nExpected: 200, 9 provinces, 7 fields, 6 levels, types"
+          }
+        },
+        {
+          "name": "TC-03 Unknown route",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-03 status is 404', () => pm.response.to.have.status(404));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-03 404 NOT_FOUND', () => {",
+                  "  pm.expect(json.error.code).to.eql('NOT_FOUND');",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/nope",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "nope"
+              ]
+            },
+            "description": "Consistent error shape\n\nExpected: 404 NOT_FOUND"
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Auth",
+      "item": [
+        {
+          "name": "TC-04 Login as admin",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = n => new Date(Date.now() + 2*3600e3 + n*864e5).toISOString().slice(0,10); pm.collectionVariables.set('closeDate', d(20)); pm.collectionVariables.set('pastDate', d(-1));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-04 status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-04 200, role admin', () => {",
+                  "  pm.expect(json.user.role).to.eql('admin');",
+                  "  pm.collectionVariables.set('adminToken', json.token);",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Seeded admin signs in\n\nExpected: 200, role admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@agriopportunity.test\",\n  \"password\": \"Admin@1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-05 Login as youth with profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-05 status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-05 200, profile present, no hash', () => {",
+                  "  pm.expect(json.user.profile.field).to.eql('crop-production');",
+                  "  pm.expect(json.user).to.not.have.property('password_hash');",
+                  "  pm.collectionVariables.set('youthToken', json.token);",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Login returns the matching profile\n\nExpected: 200, profile present, no hash",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"lerato@agriopportunity.test\",\n  \"password\": \"Youth@1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-06 Wrong password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-06 status is 401', () => pm.response.to.have.status(401));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-06 401 generic message', () => {",
+                  "  pm.expect(json.error.message).to.eql('Email or password is incorrect');",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Generic message\n\nExpected: 401 generic message",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"lerato@agriopportunity.test\",\n  \"password\": \"wrong-pass1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-07 Register without consent",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('runId', Date.now().toString());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-07 status is 400', () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-07 400 consent error', () => {",
+                  "  pm.expect(json.error.details).to.have.property('consent');",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "POPIA consent required\n\nExpected: 400 consent error",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"No Consent\",\n  \"email\": \"nc{{runId}}@agriopportunity.test\",\n  \"password\": \"Passw0rd!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-08 Register with weak password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-08 status is 400', () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-08 400 password error', () => {",
+                  "  pm.expect(json.error.details).to.have.property('password');",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Password policy\n\nExpected: 400 password error",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Weak\",\n  \"email\": \"weak{{runId}}@agriopportunity.test\",\n  \"password\": \"abc\",\n  \"consent\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-09 Register new youth",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-09 status is 201', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-09 201, role youth, no profile', () => {",
+                  "  pm.expect(json.user.role).to.eql('youth');",
+                  "  pm.expect(json.user.profile).to.be.null;",
+                  "  pm.collectionVariables.set('newToken', json.token);",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Golden journey start: a new youth account\n\nExpected: 201, role youth, no profile",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Youth\",\n  \"email\": \"youth{{runId}}@agriopportunity.test\",\n  \"password\": \"Youth@1234\",\n  \"consent\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-10 Duplicate email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-10 status is 409', () => pm.response.to.have.status(409));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-10 409', () => {",
+                  "  pm.expect(json.error.code).to.eql('CONFLICT');",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Email unique\n\nExpected: 409",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dup\",\n  \"email\": \"youth{{runId}}@agriopportunity.test\",\n  \"password\": \"Youth@1234\",\n  \"consent\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-11 Me without token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-11 status is 401', () => pm.response.to.have.status(401));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-11 401', () => {",
+                  "  pm.expect(json.error.code).to.eql('UNAUTHORIZED');",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "me"
+              ]
+            },
+            "description": "Protected route\n\nExpected: 401"
+          }
+        },
+        {
+          "name": "TC-12 Tampered token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-12 status is 401', () => pm.response.to.have.status(401));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-12 401', () => {",
+                  "  pm.expect(json.error.message).to.match(/Invalid or expired/);",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{youthToken}}tampered"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "me"
+              ]
+            },
+            "description": "JWT signature checked\n\nExpected: 401"
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Profile & matches",
+      "item": [
+        {
+          "name": "TC-13 Matches before profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-13 status is 409', () => pm.response.to.have.status(409));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-13 409 set up profile', () => {",
+                  "  pm.expect(json.error.message).to.match(/profile/i);",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities/matches",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities",
+                "matches"
+              ]
+            },
+            "description": "Ask for a profile first\n\nExpected: 409 set up profile"
+          }
+        },
+        {
+          "name": "TC-14 Invalid profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-14 status is 400', () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-14 400 field, province, level errors', () => {",
+                  "  pm.expect(json.error.details).to.include.keys('field', 'province', 'level');",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "profile"
+              ]
+            },
+            "description": "Validation per field\n\nExpected: 400 field, province, level errors",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"field\": \"astronomy\",\n  \"province\": \"Mars\",\n  \"level\": 9\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-15 Set profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-15 status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-15 200, profile saved', () => {",
+                  "  pm.expect(json.profile).to.include({field: 'crop-production', province: 'Limpopo', level: 3});",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "profile"
+              ]
+            },
+            "description": "Golden journey step 1: set profile\n\nExpected: 200, profile saved",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"field\": \"crop-production\",\n  \"province\": \"Limpopo\",\n  \"level\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-16 Admin cannot set a profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-16 status is 403', () => pm.response.to.have.status(403));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-16 403', () => {",
+                  "  pm.expect(json.error.code).to.eql('FORBIDDEN');",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "profile"
+              ]
+            },
+            "description": "Role check\n\nExpected: 403",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"field\": \"crop-production\",\n  \"province\": \"Limpopo\",\n  \"level\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-17 Match count and ranked list",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-17 status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-17 200, count >= 3, score desc, soonest first, 3 reasons', () => {",
+                  "  pm.expect(json.matchCount).to.be.at.least(3);",
+                  "  const s = json.items.map(o => o.match.score); pm.expect(s).to.eql([...s].sort((a,b) => b-a));",
+                  "  const full = json.items.filter(o => o.match.isFullMatch); const d = full.map(o => o.closingDate); pm.expect(d).to.eql([...d].sort());",
+                  "  pm.expect(full[0].match.reasons).to.have.lengthOf(3);",
+                  "  pm.collectionVariables.set('matchId', full[0].id);",
+                  "  pm.collectionVariables.set('partialId', json.items.find(o => o.match.score === 2).id);",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities/matches",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities",
+                "matches"
+              ]
+            },
+            "description": "Golden journey step 2: \"N opportunities match your profile\", ranked\n\nExpected: 200, count >= 3, score desc, soonest first, 3 reasons"
+          }
+        },
+        {
+          "name": "TC-18 Partial match explains the gap",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-18 status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-18 200, failed check says Needs... or Only in...', () => {",
+                  "  pm.expect(json.opportunity.match.score).to.eql(2);",
+                  "  const bad = json.opportunity.match.reasons.find(r => !r.ok); pm.expect(bad.text).to.match(/^(Needs|Only in)/);",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities/{{partialId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities",
+                "{{partialId}}"
+              ]
+            },
+            "description": "Explainable matching\n\nExpected: 200, failed check says Needs... or Only in..."
+          }
+        },
+        {
+          "name": "TC-19 Expired items never match",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-19 status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-19 200, all isOpen', () => {",
+                  "  pm.expect(json.items.every(o => o.isOpen)).to.be.true;",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities/matches",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities",
+                "matches"
+              ]
+            },
+            "description": "Only open opportunities\n\nExpected: 200, all isOpen"
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 Search",
+      "item": [
+        {
+          "name": "TC-20 Guest search with province",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-20 status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-20 200, Limpopo or National only, no match info', () => {",
+                  "  pm.expect(json.items.every(o => ['Limpopo','National'].includes(o.province))).to.be.true;",
+                  "  pm.expect(json.items[0]).to.not.have.property('match');",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities?province=Limpopo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities"
+              ],
+              "query": [
+                {
+                  "key": "province",
+                  "value": "Limpopo"
+                }
+              ]
+            },
+            "description": "Province filter includes national items\n\nExpected: 200, Limpopo or National only, no match info"
+          }
+        },
+        {
+          "name": "TC-21 Type + closing within 7 days",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-21 status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-21 200, internships closing in 7 days', () => {",
+                  "  pm.expect(json.items.length).to.be.above(0);",
+                  "  json.items.forEach(o => { pm.expect(o.type.slug).to.eql('internship'); pm.expect(o.daysLeft).to.be.at.most(7); });",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities?type=internship&closingWithin=7",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "internship"
+                },
+                {
+                  "key": "closingWithin",
+                  "value": "7"
+                }
+              ]
+            },
+            "description": "Closing-soon filter\n\nExpected: 200, internships closing in 7 days"
+          }
+        },
+        {
+          "name": "TC-22 Default sort is soonest closing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-22 status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-22 200, ascending closing dates', () => {",
+                  "  const d = json.items.map(o => o.closingDate); pm.expect(d).to.eql([...d].sort());",
+                  "  pm.collectionVariables.set('linkId', json.items.find(o => o.applyMethod === 'link').id);",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities?limit=50",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            },
+            "description": "Sort by closing date\n\nExpected: 200, ascending closing dates"
+          }
+        },
+        {
+          "name": "TC-23 Signed-in search includes match",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-23 status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-23 200, match + saved fields', () => {",
+                  "  pm.expect(json.items[0]).to.have.property('match');",
+                  "  pm.expect(json.items[0]).to.have.property('saved');",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{youthToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities?limit=3",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "3"
+                }
+              ]
+            },
+            "description": "Personalised search\n\nExpected: 200, match + saved fields"
+          }
+        },
+        {
+          "name": "TC-24 SQL injection attempt",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-24 status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-24 200, empty, table intact', () => {",
+                  "  pm.expect(json.items).to.eql([]);",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities?q=%27%3B%20DROP%20TABLE%20opportunities%3B%20--",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "%27%3B%20DROP%20TABLE%20opportunities%3B%20--"
+                }
+              ]
+            },
+            "description": "Parameterised SQL\n\nExpected: 200, empty, table intact"
+          }
+        },
+        {
+          "name": "TC-25 Invalid filter",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-25 status is 400', () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-25 400', () => {",
+                  "  pm.expect(json.error.details).to.have.property('type');",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities?type=party",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "party"
+                }
+              ]
+            },
+            "description": "Query validation\n\nExpected: 400"
+          }
+        },
+        {
+          "name": "TC-26 Invalid id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-26 status is 400', () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-26 400', () => {",
+                  "  pm.expect(json.error.code).to.eql('BAD_REQUEST');",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities/not-a-uuid",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities",
+                "not-a-uuid"
+              ]
+            },
+            "description": "UUID check\n\nExpected: 400"
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 Save & alerts",
+      "item": [
+        {
+          "name": "TC-27 Save top match with 3-day alert",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-27 status is 201', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-27 201, saved, alert 3 days', () => {",
+                  "  pm.expect(json.opportunity.saved).to.be.true;",
+                  "  pm.expect(json.opportunity.alertDaysBefore).to.eql(3);",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities/{{matchId}}/save",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities",
+                "{{matchId}}",
+                "save"
+              ]
+            },
+            "description": "Golden journey step 3: save one\n\nExpected: 201, saved, alert 3 days",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"daysBefore\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-28 Invalid reminder",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-28 status is 400', () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-28 400', () => {",
+                  "  pm.expect(json.error.details).to.have.property('daysBefore');",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities/{{matchId}}/save",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities",
+                "{{matchId}}",
+                "save"
+              ]
+            },
+            "description": "0-30 days only\n\nExpected: 400",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"daysBefore\": 90\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-29 Saved list",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-29 status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-29 200, contains saved item', () => {",
+                  "  pm.expect(json.items.map(o => o.id)).to.include(pm.collectionVariables.get('matchId'));",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/saved",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "me",
+                "saved"
+              ]
+            },
+            "description": "Offline saved list source\n\nExpected: 200, contains saved item"
+          }
+        },
+        {
+          "name": "TC-30 Closing-date alert is due",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-30 status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-30 200, alert in due with message', () => {",
+                  "  const a = json.due.find(x => x.opportunityId === pm.collectionVariables.get('matchId')); pm.expect(a).to.exist;",
+                  "  pm.expect(a.message).to.match(/closes (today|tomorrow|in \\d+ days?)/);",
+                  "  pm.collectionVariables.set('alertId', a.id);",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/alerts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "me",
+                "alerts"
+              ]
+            },
+            "description": "Golden journey step 4: receive a closing-date alert (item closes in 2 days)\n\nExpected: 200, alert in due with message"
+          }
+        },
+        {
+          "name": "TC-31 Calendar file",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-31 status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('TC-31 200, text/calendar with VALARM -P3D', () => {",
+                  "  pm.expect(pm.response.headers.get('Content-Type')).to.include('text/calendar');",
+                  "  pm.expect(pm.response.text()).to.include('TRIGGER:-P3D');",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities/{{matchId}}/calendar.ics?daysBefore=3",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities",
+                "{{matchId}}",
+                "calendar.ics"
+              ],
+              "query": [
+                {
+                  "key": "daysBefore",
+                  "value": "3"
+                }
+              ]
+            },
+            "description": "Phone calendar reminder\n\nExpected: 200, text/calendar with VALARM -P3D"
+          }
+        },
+        {
+          "name": "TC-32 Dismiss alert",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-32 status is 204', () => pm.response.to.have.status(204));",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/alerts/{{alertId}}/dismiss",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "me",
+                "alerts",
+                "{{alertId}}",
+                "dismiss"
+              ]
+            },
+            "description": "Alert handled\n\nExpected: 204"
+          }
+        },
+        {
+          "name": "TC-33 Dismissed alert gone",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-33 status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-33 200, not in due', () => {",
+                  "  pm.expect(json.due.map(a => a.id)).to.not.include(pm.collectionVariables.get('alertId'));",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/alerts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "me",
+                "alerts"
+              ]
+            },
+            "description": "Dismiss works\n\nExpected: 200, not in due"
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 Apply",
+      "item": [
+        {
+          "name": "TC-34 Apply with form",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-34 status is 201', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-34 201 submitted', () => {",
+                  "  pm.expect(json.application.status).to.eql('submitted');",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities/{{matchId}}/apply",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities",
+                "{{matchId}}",
+                "apply"
+              ]
+            },
+            "description": "Simple form application\n\nExpected: 201 submitted",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"motivation\": \"I studied a diploma in plant production and farm vegetables with my family.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-35 Apply twice",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-35 status is 409', () => pm.response.to.have.status(409));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-35 409', () => {",
+                  "  pm.expect(json.error.code).to.eql('CONFLICT');",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities/{{matchId}}/apply",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities",
+                "{{matchId}}",
+                "apply"
+              ]
+            },
+            "description": "One application each\n\nExpected: 409",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"motivation\": \"Trying to apply a second time for this.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-36 Link opportunity refuses form",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-36 status is 400', () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-36 400 apply on website', () => {",
+                  "  pm.expect(json.error.message).to.match(/website/);",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities/{{linkId}}/apply",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities",
+                "{{linkId}}",
+                "apply"
+              ]
+            },
+            "description": "Send people to the original application\n\nExpected: 400 apply on website",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"motivation\": \"I would like to apply for this one please.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-37 Motivation too short",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-37 status is 400', () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-37 400', () => {",
+                  "  pm.expect(json.error.details).to.have.property('motivation');",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities/{{partialId}}/apply",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities",
+                "{{partialId}}",
+                "apply"
+              ]
+            },
+            "description": "Validation\n\nExpected: 400",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"motivation\": \"Hi\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-38 My applications",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-38 status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-38 200, 1 item', () => {",
+                  "  pm.expect(json.items).to.have.lengthOf(1);",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/applications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "me",
+                "applications"
+              ]
+            },
+            "description": "Track applications\n\nExpected: 200, 1 item"
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 Admin",
+      "item": [
+        {
+          "name": "TC-39 Youth blocked from admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-39 status is 403', () => pm.response.to.have.status(403));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-39 403', () => {",
+                  "  pm.expect(json.error.code).to.eql('FORBIDDEN');",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{youthToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/opportunities",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "opportunities"
+              ]
+            },
+            "description": "Admin only\n\nExpected: 403"
+          }
+        },
+        {
+          "name": "TC-40 Past date and missing link rejected",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-40 status is 400', () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-40 400 closingDate + applyUrl', () => {",
+                  "  pm.expect(json.error.details).to.include.keys('closingDate', 'applyUrl');",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/opportunities",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "opportunities"
+              ]
+            },
+            "description": "Business rules\n\nExpected: 400 closingDate + applyUrl",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Bad opportunity\",\n  \"type\": \"job\",\n  \"organisation\": \"Test Org\",\n  \"description\": \"A description that is long enough to pass.\",\n  \"field\": \"any\",\n  \"province\": \"National\",\n  \"closingDate\": \"{{pastDate}}\",\n  \"applyMethod\": \"link\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-41 Create opportunity",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-41 status is 201', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-41 201 open', () => {",
+                  "  pm.expect(json.opportunity.isOpen).to.be.true;",
+                  "  pm.collectionVariables.set('createdId', json.opportunity.id);",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/opportunities",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "opportunities"
+              ]
+            },
+            "description": "Admin creates\n\nExpected: 201 open",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Seedling Nursery Internship {{runId}}\",\n  \"type\": \"internship\",\n  \"organisation\": \"Test Nursery (demo)\",\n  \"description\": \"Six months in a seedling nursery: sowing, grafting and dispatch.\",\n  \"field\": \"crop-production\",\n  \"province\": \"Limpopo\",\n  \"minLevel\": 2,\n  \"closingDate\": \"{{closeDate}}\",\n  \"applyMethod\": \"form\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-42 New item appears in matches",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-42 status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-42 200, includes new item', () => {",
+                  "  pm.expect(json.items.map(o => o.id)).to.include(pm.collectionVariables.get('createdId'));",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{youthToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities/matches",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities",
+                "matches"
+              ]
+            },
+            "description": "Matching picks it up\n\nExpected: 200, includes new item"
+          }
+        },
+        {
+          "name": "TC-43 Edit opportunity",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-43 status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-43 200 updated', () => {",
+                  "  pm.expect(json.opportunity.stipend).to.eql('R5 000 per month');",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/opportunities/{{createdId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "opportunities",
+                "{{createdId}}"
+              ]
+            },
+            "description": "Admin edits\n\nExpected: 200 updated",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"stipend\": \"R5 000 per month\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-44 Expire opportunity",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-44 status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-44 200, closed', () => {",
+                  "  pm.expect(json.opportunity.isOpen).to.be.false;",
+                  "  pm.expect(json.opportunity.status).to.eql('expired');",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/opportunities/{{createdId}}/expire",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "opportunities",
+                "{{createdId}}",
+                "expire"
+              ]
+            },
+            "description": "Admin expires\n\nExpected: 200, closed"
+          }
+        },
+        {
+          "name": "TC-45 Expired hidden from search",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-45 status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-45 200, empty', () => {",
+                  "  pm.expect(json.items).to.have.lengthOf(0);",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities?q=Seedling%20Nursery%20Internship%20{{runId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "Seedling%20Nursery%20Internship%20{{runId}}"
+                }
+              ]
+            },
+            "description": "Expiry works\n\nExpected: 200, empty"
+          }
+        },
+        {
+          "name": "TC-46 Cannot save expired",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-46 status is 409', () => pm.response.to.have.status(409));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-46 409', () => {",
+                  "  pm.expect(json.error.code).to.eql('CONFLICT');",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{youthToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities/{{createdId}}/save",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities",
+                "{{createdId}}",
+                "save"
+              ]
+            },
+            "description": "Closed is closed\n\nExpected: 409",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-47 Applications for opportunity",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-47 status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-47 200, >= 1', () => {",
+                  "  pm.expect(json.items.length).to.be.at.least(1);",
+                  "  pm.expect(json.items[0].applicant).to.have.property('email');",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/opportunities/{{matchId}}/applications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "opportunities",
+                "{{matchId}}",
+                "applications"
+              ]
+            },
+            "description": "Admin sees applicants\n\nExpected: 200, >= 1"
+          }
+        },
+        {
+          "name": "TC-48 Stats",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-48 status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-48 200 counters', () => {",
+                  "  pm.expect(json).to.include.keys('youth','profiles','openOpportunities','closingThisWeek','saves','applications');",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "stats"
+              ]
+            },
+            "description": "Dashboard numbers\n\nExpected: 200 counters"
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 Privacy",
+      "item": [
+        {
+          "name": "TC-49 Unsave",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-49 status is 204', () => pm.response.to.have.status(204));",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities/{{matchId}}/save",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities",
+                "{{matchId}}",
+                "save"
+              ]
+            },
+            "description": "Remove saved + alert\n\nExpected: 204"
+          }
+        },
+        {
+          "name": "TC-50 Delete my account",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-50 status is 204', () => pm.response.to.have.status(204));",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "me"
+              ]
+            },
+            "description": "POPIA: right to deletion\n\nExpected: 204"
+          }
+        },
+        {
+          "name": "TC-51 Deleted account cannot log in",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC-51 status is 401', () => pm.response.to.have.status(401));",
+                  "const json = pm.response.json();",
+                  "pm.test('TC-51 401', () => {",
+                  "  pm.expect(json.error.code).to.eql('UNAUTHORIZED');",
+                  "});",
+                  "pm.test('responds under 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Data gone\n\nExpected: 401",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"youth{{runId}}@agriopportunity.test\",\n  \"password\": \"Youth@1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "runId",
+      "value": ""
+    },
+    {
+      "key": "adminToken",
+      "value": ""
+    },
+    {
+      "key": "youthToken",
+      "value": ""
+    },
+    {
+      "key": "newToken",
+      "value": ""
+    },
+    {
+      "key": "matchId",
+      "value": ""
+    },
+    {
+      "key": "partialId",
+      "value": ""
+    },
+    {
+      "key": "linkId",
+      "value": ""
+    },
+    {
+      "key": "alertId",
+      "value": ""
+    },
+    {
+      "key": "createdId",
+      "value": ""
+    },
+    {
+      "key": "closeDate",
+      "value": ""
+    },
+    {
+      "key": "pastDate",
+      "value": ""
+    }
+  ]
+}

@@ -1,0 +1,931 @@
+openapi: 3.0.3
+info:
+  title: AgriOpportunity API
+  version: 1.0.0
+  description: 'AgriConnect 360 · A4 AgriOpportunity: agri bursaries, internships, learnerships and jobs matched to a youth profile, with closing-date
+    alerts. Matching = 3 yes/no checks (field, province, level). Synthetic demo data.'
+servers:
+- url: https://agriopportunity-api.onrender.com/api/v1
+  description: Render (replace with your URL)
+- url: http://localhost:4000/api/v1
+  description: Local
+tags:
+- name: Meta
+- name: Auth
+- name: Profile
+- name: Opportunities
+- name: Me
+- name: Admin
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  responses:
+    Error:
+      description: Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: BAD_REQUEST
+            message:
+              type: string
+            details:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: string
+    Province:
+      type: string
+      enum:
+      - Eastern Cape
+      - Free State
+      - Gauteng
+      - KwaZulu-Natal
+      - Limpopo
+      - Mpumalanga
+      - North West
+      - Northern Cape
+      - Western Cape
+    Profile:
+      type: object
+      properties:
+        field:
+          type: string
+          enum:
+          - crop-production
+          - animal-production
+          - agri-economics
+          - agri-processing
+          - agri-engineering
+          - horticulture
+          - natural-resources
+        province:
+          $ref: '#/components/schemas/Province'
+        level:
+          type: integer
+          minimum: 0
+          maximum: 5
+        phone:
+          type: string
+          nullable: true
+      required:
+      - field
+      - province
+      - level
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum:
+          - youth
+          - admin
+        profile:
+          type: object
+          nullable: true
+          allOf:
+          - $ref: '#/components/schemas/Profile'
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+    Named:
+      type: object
+      properties:
+        slug:
+          type: string
+        name:
+          type: string
+    MatchReason:
+      type: object
+      properties:
+        check:
+          type: string
+          enum:
+          - field
+          - province
+          - level
+        ok:
+          type: boolean
+        text:
+          type: string
+          example: 'In your province: Limpopo'
+    Opportunity:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        type:
+          $ref: '#/components/schemas/Named'
+        organisation:
+          type: string
+        description:
+          type: string
+        field:
+          $ref: '#/components/schemas/Named'
+        province:
+          type: string
+        minLevel:
+          type: object
+          properties:
+            level:
+              type: integer
+            name:
+              type: string
+        stipend:
+          type: string
+          nullable: true
+        closingDate:
+          type: string
+          format: date
+        daysLeft:
+          type: integer
+        isOpen:
+          type: boolean
+        status:
+          type: string
+          enum:
+          - active
+          - expired
+        applyMethod:
+          type: string
+          enum:
+          - link
+          - form
+        applyUrl:
+          type: string
+          nullable: true
+        calendarUrl:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        match:
+          type: object
+          properties:
+            score:
+              type: integer
+            outOf:
+              type: integer
+              example: 3
+            isFullMatch:
+              type: boolean
+            reasons:
+              type: array
+              items:
+                $ref: '#/components/schemas/MatchReason'
+        saved:
+          type: boolean
+        alertDaysBefore:
+          type: integer
+          nullable: true
+        applied:
+          type: boolean
+    OpportunityInput:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 5
+          maxLength: 140
+        type:
+          type: string
+          enum:
+          - bursary
+          - internship
+          - learnership
+          - graduate_placement
+          - programme
+          - job
+        organisation:
+          type: string
+          minLength: 2
+          maxLength: 120
+        description:
+          type: string
+          minLength: 20
+          maxLength: 3000
+        field:
+          type: string
+          enum:
+          - crop-production
+          - animal-production
+          - agri-economics
+          - agri-processing
+          - agri-engineering
+          - horticulture
+          - natural-resources
+          - any
+        province:
+          type: string
+          enum:
+          - Eastern Cape
+          - Free State
+          - Gauteng
+          - KwaZulu-Natal
+          - Limpopo
+          - Mpumalanga
+          - North West
+          - Northern Cape
+          - Western Cape
+          - National
+        minLevel:
+          type: integer
+          minimum: 0
+          maximum: 5
+          default: 0
+        stipend:
+          type: string
+          maxLength: 80
+          nullable: true
+        closingDate:
+          type: string
+          format: date
+        applyMethod:
+          type: string
+          enum:
+          - link
+          - form
+        applyUrl:
+          type: string
+          format: uri
+          nullable: true
+          description: Required when applyMethod is link
+        status:
+          type: string
+          enum:
+          - active
+          - expired
+          default: active
+      required:
+      - title
+      - type
+      - organisation
+      - description
+      - field
+      - province
+      - closingDate
+      - applyMethod
+    Alert:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        opportunityId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        organisation:
+          type: string
+        closingDate:
+          type: string
+          format: date
+        remindOn:
+          type: string
+          format: date
+        daysBefore:
+          type: integer
+        daysLeft:
+          type: integer
+        message:
+          type: string
+          example: Crop Production Internship 2027 closes in 2 days
+paths:
+  /health:
+    get:
+      tags:
+      - Meta
+      summary: API and database status
+      security: []
+      responses:
+        '200':
+          description: OK
+        '503':
+          description: Database down
+  /meta:
+    get:
+      tags:
+      - Meta
+      summary: 'Reference lists: provinces, fields, levels, types'
+      security: []
+      responses:
+        '200':
+          description: OK
+  /auth/register:
+    post:
+      tags:
+      - Auth
+      summary: Register a youth account
+      security: []
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 2
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                  description: Needs a letter and a number
+                consent:
+                  type: boolean
+                  enum:
+                  - true
+                  description: POPIA consent
+              required:
+              - name
+              - email
+              - password
+              - consent
+  /auth/login:
+    post:
+      tags:
+      - Auth
+      summary: Sign in
+      security: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+              required:
+              - email
+              - password
+  /auth/me:
+    get:
+      tags:
+      - Auth
+      summary: Current user and profile
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Error'
+    delete:
+      tags:
+      - Auth
+      summary: Delete my account and data (POPIA)
+      security:
+      - bearerAuth: []
+      responses:
+        '204':
+          description: Deleted
+        '401':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+  /profile:
+    get:
+      tags:
+      - Profile
+      summary: My matching profile
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+        '403':
+          $ref: '#/components/responses/Error'
+    put:
+      tags:
+      - Profile
+      summary: Create or replace my profile
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  profile:
+                    $ref: '#/components/schemas/Profile'
+        '400':
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Profile'
+  /opportunities:
+    get:
+      tags:
+      - Opportunities
+      summary: Search open opportunities
+      security:
+      - {}
+      - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Opportunity'
+                  total:
+                    type: integer
+        '400':
+          $ref: '#/components/responses/Error'
+      parameters:
+      - name: q
+        in: query
+        schema:
+          type: string
+      - name: type
+        in: query
+        schema:
+          type: string
+          enum:
+          - bursary
+          - internship
+          - learnership
+          - graduate_placement
+          - programme
+          - job
+      - name: province
+        in: query
+        schema:
+          type: string
+          enum:
+          - Eastern Cape
+          - Free State
+          - Gauteng
+          - KwaZulu-Natal
+          - Limpopo
+          - Mpumalanga
+          - North West
+          - Northern Cape
+          - Western Cape
+          - National
+      - name: field
+        in: query
+        schema:
+          type: string
+          enum:
+          - crop-production
+          - animal-production
+          - agri-economics
+          - agri-processing
+          - agri-engineering
+          - horticulture
+          - natural-resources
+          - any
+      - name: closingWithin
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 365
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 100
+          maximum: 100
+  /opportunities/matches:
+    get:
+      tags:
+      - Opportunities
+      summary: Match count and ranked, explainable list
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  matchCount:
+                    type: integer
+                  partialCount:
+                    type: integer
+                  profile:
+                    $ref: '#/components/schemas/Profile'
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Opportunity'
+        '409':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+  /opportunities/{id}:
+    parameters:
+    - $ref: '#/components/parameters/Id'
+    get:
+      tags:
+      - Opportunities
+      summary: One opportunity
+      security:
+      - {}
+      - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  opportunity:
+                    $ref: '#/components/schemas/Opportunity'
+        '400':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+  /opportunities/{id}/calendar.ics:
+    parameters:
+    - $ref: '#/components/parameters/Id'
+    get:
+      tags:
+      - Opportunities
+      summary: Calendar file with a closing-date reminder
+      security: []
+      responses:
+        '200':
+          description: iCalendar file
+          content:
+            text/calendar:
+              schema:
+                type: string
+        '404':
+          $ref: '#/components/responses/Error'
+      parameters:
+      - name: daysBefore
+        in: query
+        schema:
+          type: integer
+          default: 3
+          minimum: 0
+          maximum: 30
+  /opportunities/{id}/save:
+    parameters:
+    - $ref: '#/components/parameters/Id'
+    post:
+      tags:
+      - Opportunities
+      summary: Save and set a closing-date alert
+      security:
+      - bearerAuth: []
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  opportunity:
+                    $ref: '#/components/schemas/Opportunity'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                daysBefore:
+                  type: integer
+                  minimum: 0
+                  maximum: 30
+                  default: 3
+    delete:
+      tags:
+      - Opportunities
+      summary: Unsave (removes the alert)
+      security:
+      - bearerAuth: []
+      responses:
+        '204':
+          description: Removed
+  /opportunities/{id}/apply:
+    parameters:
+    - $ref: '#/components/parameters/Id'
+    post:
+      tags:
+      - Opportunities
+      summary: Apply with the simple form
+      security:
+      - bearerAuth: []
+      responses:
+        '201':
+          description: Created
+        '400':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                motivation:
+                  type: string
+                  minLength: 20
+                  maxLength: 1500
+                phone:
+                  type: string
+              required:
+              - motivation
+  /me/saved:
+    get:
+      tags:
+      - Me
+      summary: Saved opportunities
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Opportunity'
+  /me/alerts:
+    get:
+      tags:
+      - Me
+      summary: Due and upcoming closing-date alerts
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  due:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Alert'
+                  upcoming:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Alert'
+  /me/alerts/{id}/dismiss:
+    parameters:
+    - $ref: '#/components/parameters/Id'
+    patch:
+      tags:
+      - Me
+      summary: Dismiss an alert
+      security:
+      - bearerAuth: []
+      responses:
+        '204':
+          description: Dismissed
+        '404':
+          $ref: '#/components/responses/Error'
+  /me/applications:
+    get:
+      tags:
+      - Me
+      summary: My applications
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+  /admin/opportunities:
+    get:
+      tags:
+      - Admin
+      summary: List opportunities with saves and applications
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+        '403':
+          $ref: '#/components/responses/Error'
+      parameters:
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum:
+          - open
+          - closed
+          - all
+          default: open
+    post:
+      tags:
+      - Admin
+      summary: Create opportunity
+      security:
+      - bearerAuth: []
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  opportunity:
+                    $ref: '#/components/schemas/Opportunity'
+        '400':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OpportunityInput'
+  /admin/opportunities/{id}:
+    parameters:
+    - $ref: '#/components/parameters/Id'
+    patch:
+      tags:
+      - Admin
+      summary: Edit opportunity (any fields, or status)
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  opportunity:
+                    $ref: '#/components/schemas/Opportunity'
+        '400':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Any OpportunityInput fields; only the fields sent are changed
+  /admin/opportunities/{id}/expire:
+    parameters:
+    - $ref: '#/components/parameters/Id'
+    patch:
+      tags:
+      - Admin
+      summary: Expire now
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  opportunity:
+                    $ref: '#/components/schemas/Opportunity'
+        '404':
+          $ref: '#/components/responses/Error'
+  /admin/opportunities/{id}/applications:
+    parameters:
+    - $ref: '#/components/parameters/Id'
+    get:
+      tags:
+      - Admin
+      summary: Applications for one opportunity
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+  /admin/stats:
+    get:
+      tags:
+      - Admin
+      summary: Counts
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  youth:
+                    type: integer
+                  profiles:
+                    type: integer
+                  openOpportunities:
+                    type: integer
+                  closingThisWeek:
+                    type: integer
+                  saves:
+                    type: integer
+                  applications:
+                    type: integer

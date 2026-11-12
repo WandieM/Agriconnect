@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "AgriOpportunity",
+    "slug": "agriopportunity",
+    "scheme": "agriopportunity",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1F7A3E"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "za.ac.tut.agriconnect.agriopportunity",
+      "infoPlist": {}
+    },
+    "android": {
+      "package": "za.ac.tut.agriconnect.agriopportunity",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "backgroundColor": "#1F7A3E",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store"
+    ],
+    "extra": {
+      "apiUrl": "https://agriopportunity-api.onrender.com"
+    }
+  }
+}
